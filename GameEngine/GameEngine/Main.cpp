@@ -100,6 +100,10 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    HWND hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
       CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, nullptr, nullptr, hInstance, nullptr);
 
+   // 2개 이상의 윈도우 생성 가능
+   //HWND hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
+   //    CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, nullptr, nullptr, hInstance, nullptr);
+
    if (!hWnd)
    {
       return FALSE;
@@ -145,8 +149,40 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     case WM_PAINT:
         {
             PAINTSTRUCT ps;
-            BeginPaint(hWnd, &ps);
+            HDC hdc = BeginPaint(hWnd, &ps);
+            // DC란 화면 출력에 필요한 모든 정보를 가지는 데이터 구조체이며 GDI 모듈에 의해서 관리된다.
+            // 폰트? 선의 굵기? 색상? 등등의 정보가 DC에 담겨있다.
+            // 화면 출력에 필요한 모든 경우는 WINAPI에서는 DC를 통해서 이루어진다.
+            // 
+            // 
             // TODO: 여기에 그리기 코드를 추가합니다...
+
+			HBRUSH brush = CreateSolidBrush(RGB(100, 200, 100)); // 진한 녹색 색상의 브러시 생성
+			HBRUSH oldBrush = (HBRUSH)SelectObject(hdc, brush); // DC에 적용되어 있는 브러시 저장
+
+			SelectObject(hdc, brush); // DC에 브러시 적용
+            Rectangle(hdc, 100, 100, 200, 200);
+
+			SelectObject(hdc, oldBrush); // DC에 원래 브러시 복원
+			DeleteObject(brush); // 브러시 객체 삭제
+
+			HPEN redPen = CreatePen(PS_SOLID, 5, RGB(200, 100, 100)); // 빨간색 색상의 펜 생성
+			HPEN oldPen = (HPEN)SelectObject(hdc, redPen); // DC에 적용되어 있는 펜 저장
+
+			SelectObject(hdc, redPen); // DC에 펜 적용
+			Ellipse(hdc, 300, 100, 400, 200);
+
+			SelectObject(hdc, oldPen); // DC에 원래 펜 복원
+			DeleteObject(redPen); // 펜 객체 삭제
+
+			// 기본으로 자주 사용하는 GDI 객체는 DC에 기본적으로 선택되어 있다.
+			// 그 오브젝트들을 스톡 오브젝트라고 부른다. (Stock Object)
+			HBRUSH grayBrush = (HBRUSH)GetStockObject(GRAY_BRUSH); // 회색 색상의 브러시를 가져온다.
+			oldBrush = (HBRUSH)SelectObject(hdc, grayBrush); // DC에 적용되어 있는 브러시 저장
+
+			Rectangle(hdc, 100, 300, 200, 400);
+			SelectObject(hdc, oldBrush); // DC에 원래 브러시 복원
+
             EndPaint(hWnd, &ps);
         }
         break;
